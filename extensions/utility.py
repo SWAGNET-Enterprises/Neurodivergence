@@ -33,11 +33,15 @@ async def bom(ctx):
         await ctx.send(f"An error occurred: {str(e)}")
 
 @commands.command()
-async def weather(ctx):
+async def weather(ctx, query=None):
     embed = discord.Embed()
-    embed = discord.Embed(title="Adelaide Weather", description="Please wait...")
+    embed = discord.Embed(title="Weather", description="Please wait...")
     msg = await ctx.reply(embed=embed)
-    url = f"http://www.bom.gov.au/sa/forecasts/adelaide.shtml"
+
+    if query is None:
+        url = f"http://www.bom.gov.au/sa/forecasts/adelaide.shtml"
+    else:
+        url = f"http://www.bom.gov.au/sa/forecasts/{query}.shtml"
 
     response = requests.get(url, headers=headers)
     soup = BeautifulSoup(response.content, "html.parser")
@@ -50,14 +54,14 @@ async def weather(ctx):
     description = div_element.find('p').text
     
     if div_element:
-        embed = discord.Embed(title="Adelaide Weather")
+        embed = discord.Embed(title="Weather")
         embed.add_field(name="Temperature", value=f"{temp}°C", inline=True)
         #embed.add_field(name="Possible rainfall", value=f"{rainfall}", inline=True)
         embed.add_field(name="Chance of any rain", value=f"{rainfall_chance}", inline=True)
         embed.add_field(name=f"{summary}", value=f"{description}", inline=False)
         await msg.edit(embed=embed)
     else:
-        embed = discord.Embed(title="Adelaide Weather", description="Failed to retreive weather.")
+        embed = discord.Embed(title="Weather", description="Failed to retreive weather.")
         await msg.edit(embed=embed)
 
 @commands.command()
@@ -101,11 +105,15 @@ async def pl(ctx, query, suburb, state):
     await msg.edit(embed=embed)
 
 @commands.command()
-async def fuel(ctx):
+async def fuel(ctx, query=None):
     embed = discord.Embed()
     embed = discord.Embed(title="Fuel Prices", description="Please wait...")
     msg = await ctx.reply(embed=embed)
-    url = "https://fuelprice.io/sa/adelaide/"
+
+    if query is None:
+        url = f"https://fuelprice.io/sa/adelaide/"
+    else:
+        url = f"https://fuelprice.io/sa/{query}/"
 
     response = requests.get(url, headers=headers)
     soup = BeautifulSoup(response.content, "html.parser")
@@ -119,7 +127,7 @@ async def fuel(ctx):
         return
 
     # Create a new Discord embed
-    embed = discord.Embed(title="Fuel Prices", descriptions="low to high")
+    embed = discord.Embed(title="Fuel Prices", description="low to high")
 
     # Iterate over each profile div and extract the relevant information
     for profile in profile_divs:
