@@ -16,6 +16,7 @@ else:
         config = json.load(file)
 
 intents = discord.Intents.default()
+intents.message_content = True
 
 # Setup both of the loggers
 
