@@ -137,5 +137,29 @@ class Utility(commands.Cog, name="utility"):
             embed.add_field(name=service['id'], value=f"{service['min']} mins - {service['scheduled']}", inline=False)
         await msg.edit(embed=embed)
         
+    @commands.hybrid_command(
+        name="rego",
+        description="Check a vehicles registration (South Australia)",
+    )
+    async def rego(self, ctx, plate="wgz422"):
+        embed = discord.Embed(title=f"Check Registration - {plate}", description="Please wait...")
+        msg = await ctx.reply(embed=embed)
+        
+        # Get registration info from EzyReg API and add them to embed
+        ezyreg_json = json.loads(requests.post("https://account.ezyreg.sa.gov.au/r/veh/an/checkRegistration", json={'plateNumber': plate, 'registrationType': 'VEHICLE'}).content)
+        if("description" in ezyreg_json):
+            embed = discord.Embed(title=f"Check Registration - {plate}", description="The plate number entered is not currently assigned to a vehicle. ")
+            await msg.edit(embed=embed)
+            return
+        embed = discord.Embed(title=f"Check Registration - {plate}")
+        embed.add_field(name="Expiry Date", value=ezyreg_json["checkRegistrationDetails"][0]["expiryDate"], inline=False)
+        embed.add_field(name="Make", value=ezyreg_json["checkRegistrationDetails"][0]["vehicleMake"], inline=False)
+        embed.add_field(name="Body Type", value=ezyreg_json["checkRegistrationDetails"][0]["vehicleBodyType"], inline=False)
+        embed.add_field(name="Primary Colour", value=ezyreg_json["checkRegistrationDetails"][0]["primaryColour"], inline=False)
+        embed.add_field(name="CTP Insurer", value=ezyreg_json["checkRegistrationDetails"][0]["ctpInsurer"], inline=False)
+        embed.add_field(name="CTP Ins. Premium Class", value=ezyreg_json["checkRegistrationDetails"][0]["insuranceClass"], inline=False)
+        embed.add_field(name="VIN", value=ezyreg_json["checkRegistrationDetails"][0]["vinChassis"], inline=False)
+        await msg.edit(embed=embed)
+
 async def setup(bot) -> None:
     await bot.add_cog(Utility(bot))

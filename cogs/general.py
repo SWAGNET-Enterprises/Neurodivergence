@@ -11,7 +11,6 @@ class General(commands.Cog, name="general"):
         description="List all commands"
     )
     async def cmds(self, ctx):
-        prefix = self.bot.config["prefix"]
         embed = discord.Embed(title="Neurodivergence - Help", description="List of all available commands:")
         for i in self.bot.cogs:
             if i == "owner" and not (await self.bot.is_owner(ctx.author)):
@@ -21,7 +20,7 @@ class General(commands.Cog, name="general"):
             data = []
             for command in commands:
                 description = command.description.partition("\n")[0]
-                data.append(f"{prefix}{command.name} - {description}")
+                data.append(f"{command.name} - {description}")
             help_text = "\n".join(data)
             embed.add_field(
                 name=i.capitalize(), value=f"```{help_text}```", inline=False

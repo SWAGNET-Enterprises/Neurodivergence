@@ -9,12 +9,6 @@ import discord
 from discord.ext import commands, tasks
 from discord.ext.commands import Context
 
-if not os.path.isfile(f"{os.path.realpath(os.path.dirname(__file__))}/config.json"):
-    sys.exit("'config.json' not found! Please add it and try again.")
-else:
-    with open(f"{os.path.realpath(os.path.dirname(__file__))}/config.json") as file:
-        config = json.load(file)
-
 intents = discord.Intents.default()
 intents.message_content = True
 
@@ -73,7 +67,7 @@ logger.addHandler(file_handler)
 class DiscordBot(commands.Bot):
     def __init__(self) -> None:
         super().__init__(
-            command_prefix=commands.when_mentioned_or(config["prefix"]),
+            command_prefix=commands.when_mentioned_or(">"),
             intents=intents,
             help_command=None,
         )
@@ -86,7 +80,6 @@ class DiscordBot(commands.Bot):
         - self.bot.config # In cogs
         """
         self.logger = logger
-        self.config = config
 
     async def load_cogs(self) -> None:
         """
