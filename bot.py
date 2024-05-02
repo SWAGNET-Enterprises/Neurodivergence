@@ -102,7 +102,7 @@ class DiscordBot(commands.Bot):
         """
         Setup the game status task of the bot.
         """
-        statuses = ["mfc.pw/drivingdilemma", "South Australia's youth can't commute!"]
+        statuses = ["mfc.pw/drivingdilemma", "South Australia's youth can't commute!", "68+% of people fail VORT", "CBT&A costs $3000+"]
         await self.change_presence(activity=discord.CustomActivity(name=random.choice(statuses)))
 
     @status_task.before_loop

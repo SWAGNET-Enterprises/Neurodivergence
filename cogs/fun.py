@@ -1,8 +1,9 @@
 import discord
 from discord.ext import commands
 from discord.ext.commands import Context
-import requests
+import aiohttp
 import random
+from random import choice
 from bs4 import BeautifulSoup
 
 headers = {
@@ -36,19 +37,30 @@ class Fun(commands.Cog, name="fun"):
         embed = discord.Embed(title="Wanted Person - Crime Stoppers SA", description="Please wait...")
         msg = await ctx.reply(embed=embed)
 
-        response = requests.get(f"https://crimestopperssa.com.au/unsolved-cases/?case-date_min-format=d%2Fm%2FY&case-date_max-format=d%2Fm%2FY&wpv_view_count=69&wpv_post_search=&reference-number=&case-date_min=&case-date_min-format=d%2Fm%2FY&case-date_max=&case-date_max-format=d%2Fm%2FY&wpv-case-type=0&wpv_paged={random.randint(1, 16)}", headers=headers)
-        soup = BeautifulSoup(response.content, "html.parser")
+        async with aiohttp.ClientSession() as session:
+            # Construct the URL with a random page number
+            page = random.randint(1, 16)
+            url = f"https://crimestopperssa.com.au/unsolved-cases/?case-date_min-format=d%2Fm%2FY&case-date_max-format=d%2Fm%2FY&wpv_view_count=69&wpv_post_search=&reference-number=&case-date_min=&case-date_min-format=d%2Fm%2FY&case-date_max=&case-date_max-format=d%2Fm%2FY&wpv-case-type=0&wpv_paged={page}"
 
-        image_elements = soup.find_all('img', class_="attachment-thumb size-thumb wp-post-image")
-        image_urls = [img["src"] for img in image_elements if "crimestoppers-no-photo" not in img["src"]]
+            async with session.get(url, headers=headers) as response:
+                if response.status != 200:
+                    embed = discord.Embed(title="Wanted Person - Crime Stoppers SA", description="Error retrieving image.")
+                    await msg.edit(embed=embed)
+                    return
+                soup = BeautifulSoup(await response.text(), "html.parser")
 
-        if image_urls:
-            embed = discord.Embed(title="Wanted Person - Crime Stoppers SA")
-            embed.set_image(url=random.choice(image_urls))
-            await msg.edit(embed=embed)
-        else:
-            embed = discord.Embed(title="Wanted Person - Crime Stoppers SA", description="Error retrieving image.")
-            await msg.edit(embed=embed)
+                # Find image elements and filter out default "no photo" images
+                image_elements = soup.find_all('img', class_="attachment-thumb size-thumb wp-post-image")
+                image_urls = [img["src"] for img in image_elements if "crimestoppers-no-photo" not in img["src"]]
+
+                if image_urls:
+                    # Choose a random image URL and set it as the embed image
+                    embed = discord.Embed(title="Wanted Person - Crime Stoppers SA")
+                    embed.set_image(url=random.choice(image_urls))
+                    await msg.edit(embed=embed)
+                else:
+                    embed = discord.Embed(title="Wanted Person - Crime Stoppers SA", description="No images found on this page.")
+                    await msg.edit(embed=embed)
             
     @commands.hybrid_command(
         name="cctv",
@@ -58,19 +70,30 @@ class Fun(commands.Cog, name="fun"):
         embed = discord.Embed(title="Random CCTV", description="Please wait...")
         msg = await ctx.reply(embed=embed)
 
-        response = requests.get(f"{random.choice(insecam_list)}{random.randint(1, 10)}", headers=headers)
-        soup = BeautifulSoup(response.content, "html.parser")
+        async with aiohttp.ClientSession() as session:
+            # Choose a random Insecam URL and a random camera number
+            insecam_url = choice(insecam_list)
+            camera_number = random.randint(1, 10)
+            url = f"{insecam_url}{camera_number}"
 
-        camera_elements = soup.find_all('img', class_="thumbnail-item__img img-responsive")
-        camera_urls = [img["src"] for img in camera_elements]
+            async with session.get(url, headers=headers) as response:
+                if response.status != 200:
+                    embed = discord.Embed(title="Random CCTV", description="Error retrieving stream.")
+                    await msg.edit(embed=embed)
+                    return
+                soup = BeautifulSoup(await response.text(), "html.parser")
 
-        if camera_urls:
-            embed = discord.Embed(title="Random CCTV")
-            embed.set_image(url=random.choice(camera_urls))
-            await msg.edit(embed=embed)
-        else:
-            embed = discord.Embed(title="Random CCTV", description="Error retrieving stream.")
-            await msg.edit(embed=embed)
+                # Find camera elements and extract URLs
+                camera_elements = soup.find_all('img', class_="thumbnail-item__img img-responsive")
+                camera_urls = [img["src"] for img in camera_elements]
+
+                if camera_urls:
+                    embed = discord.Embed(title="Random CCTV")
+                    embed.set_image(url=random.choice(camera_urls))
+                    await msg.edit(embed=embed)
+                else:
+                    embed = discord.Embed(title="Random CCTV", description="No cameras found on this page.")
+                    await msg.edit(embed=embed)
 
 async def setup(bot) -> None:
     await bot.add_cog(Fun(bot))
