@@ -4,16 +4,8 @@ from discord.ext.commands import Context
 import aiohttp
 from bs4 import BeautifulSoup
 import re
-import json
-import base64
-from PIL import Image
-import io
-import os
-import random
 
 headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:109.0) Gecko/20100101 Firefox/114.0'}
-
-auto1111_hosts = json.loads(os.environ['AUTO1111_HOSTS'])
 
 class Utility(commands.Cog, name="utility"):
     def __init__(self, bot) -> None:
@@ -156,46 +148,7 @@ class Utility(commands.Cog, name="utility"):
             embed.add_field(name="CPEs", value=shodan_json["cpes"], inline=False)
             embed.add_field(name="Vulns", value=shodan_json["vulns"], inline=False)
         await msg.edit(embed=embed)
-    
-    @commands.hybrid_command(
-        name="metro",
-        description="See departures on the Adelaide Metro network",
-    )
-    async def metro(self, ctx, stop="16490"):
-        embed = discord.Embed(title=f"Adelaide Metro", description="Please wait...")
-        msg = await ctx.reply(embed=embed)
-
-        async with aiohttp.ClientSession() as session:
-            # Get stop information
-            async with session.get(f"https://www.adelaidemetro.com.au/search?f.Top%7Cadl-metro-stops=Stops&query={stop}", headers=headers) as response:
-                if response.status != 200:
-                    embed = discord.Embed(title=f"Adelaide Metro", description="Error fetching stop information.")
-                    await msg.edit(embed=embed)
-                    return
-                soup = BeautifulSoup(await response.text(), "html.parser")
-
-                # Find name & ID of stop
-                stop_name = soup.find("span", class_="result-name").text.strip()
-                stop_id = re.search(r'(\b\d{5}\b)', soup.find("p", class_="result-description").get_text(strip=True)).group()
-                if not stop_id:
-                    embed = discord.Embed(title=f"Adelaide Metro", description="Stop not found.")
-                    await msg.edit(embed=embed)
-                    return
-
-            # Get departures using API
-            async with session.get(f"https://api-cloudfront.adelaidemetro.com.au/stops/next-services?stop={stop_id}") as response:
-                if response.status != 200:
-                    embed = discord.Embed(title=f"Adelaide Metro", description="Error fetching departures.")
-                    await msg.edit(embed=embed)
-                    return
-                services_json = await response.json()
-                services = services_json['services']
-
-        embed = discord.Embed(title=f"Adelaide Metro - {stop_name}", description="next services")
-        for service in services:
-            embed.add_field(name=service['id'], value=f"{service['min']} mins - {service['scheduled']}", inline=False)
-        await msg.edit(embed=embed)
-        
+            
     @commands.hybrid_command(
         name="rego",
         description="Check a vehicles registration (South Australia)",
@@ -223,57 +176,6 @@ class Utility(commands.Cog, name="utility"):
         embed.add_field(name="CTP Ins. Premium Class", value=ezyreg_json["checkRegistrationDetails"][0]["insuranceClass"], inline=False)
         embed.add_field(name="VIN", value=ezyreg_json["checkRegistrationDetails"][0]["vinChassis"], inline=False)
         await msg.edit(embed=embed)
-
-    @commands.hybrid_command(
-        name="gemini",
-        description="Talk to the Google Gemini AI",
-    )
-    async def gemini(self, ctx, prompt="Give me a short description of yourself."):
-        embed = discord.Embed(title="Gemini", description="Please wait...")
-        msg = await ctx.reply(embed=embed)
-
-        async with aiohttp.ClientSession() as session:
-            url = f'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key={os.getenv("GEMINI_KEY")}'
-            data = {"contents": [{"parts": [{"text": prompt}]}]}
-            async with session.post(url, json=data) as response:
-                if response.status != 200:
-                    embed = discord.Embed(title="Gemini", description="There was an error communicating with the Gemini API.")
-                    await msg.edit(embed=embed)
-                    return
-                gemini_json = await response.json()
-
-        embed = discord.Embed(title="Gemini", description=gemini_json["candidates"][0]["content"]["parts"][0]["text"])
-        await msg.edit(embed=embed)
-
-    @commands.hybrid_command(
-        name="sd",
-        description="Generate an image using Stable Diffusion",
-    )
-    async def sd(self, ctx, prompt="masterpiece, best_quality, 1male, solo, ((aisan, aiden)), hell_background, fire, membranous_wings, devil_horns <lora:y-aidenStrict:0.85>", neg_prompt="deformed_hands, (worst quality, low quality:1.4)", cfg="7", steps="35", sampler="Euler a", restore_faces="true"):
-        random.shuffle(auto1111_hosts)
-        embed = discord.Embed(title=f"Stable Diffusion - {prompt}", description="Please wait...")
-        msg = await ctx.reply(embed=embed)
-
-        async with aiohttp.ClientSession() as session:
-            for host in auto1111_hosts:
-                try:
-                    async with session.post(url=f"{host}/sdapi/v1/txt2img", json={"prompt": prompt, "cfg_scale": cfg, "width": 672, "height": 672, "restore_faces": restore_faces, "negative_prompt": neg_prompt, "steps": steps, "sampler_index": sampler}) as response:
-                        if response.status != 200:
-                            return
-                        sd_json = await response.json()
-                except:
-                    continue
-
-                gen = f"{ctx.message.id}.jpg"
-                with open(gen, "wb") as f:
-                    f.write(base64.b64decode(sd_json['images'][0]))
-                await ctx.reply(file=discord.File(gen))
-                os.remove(gen)
-                await msg.delete()
-                break
-
-        embed = discord.Embed(title=f"Stable Diffusion - {prompt}", description="All Stable Diffusion hosts are currently offline.")
-        await msg.edit(embed=embed)       
             
 async def setup(bot) -> None:
     await bot.add_cog(Utility(bot))
