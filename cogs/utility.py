@@ -176,6 +176,41 @@ class Utility(commands.Cog, name="utility"):
         embed.add_field(name="CTP Ins. Premium Class", value=ezyreg_json["checkRegistrationDetails"][0]["insuranceClass"], inline=False)
         embed.add_field(name="VIN", value=ezyreg_json["checkRegistrationDetails"][0]["vinChassis"], inline=False)
         await msg.edit(embed=embed)
-            
+         
+    @commands.hybrid_command(
+        name="geowifi",
+        description="Retrieve geolocation info for a BSSID or SSID",
+    )
+    async def geowifi(self, ctx, bssid="14:84:73:0A:76:E9", ssid=""):
+        embed = discord.Embed(title=f"Wifi Geolocation - {bssid} {ssid}", description="Please wait...")
+        msg = await ctx.reply(embed=embed)
+
+        async with aiohttp.ClientSession() as session:
+            url = os.getenv("GEOWIFI_URL")
+            data = {"bssid": bssid, "ssid": ssid}
+            async with session.post(url, json=data) as response:
+                if response.status != 200:
+                    embed = discord.Embed(title=f"Wifi Geolocation - {bssid} {ssid}", description="An error occurred while fetching data.")
+                    await msg.edit(embed=embed)
+                    return
+                geowifi_json = await response.json()
+
+        embed = discord.Embed(title=f"Wifi Geolocation - {bssid} {ssid}")
+        for item in geowifi_json:
+            if not all(key in item for key in ["bssid", "latitude", "longitude", "module"]):
+                continue  # Skip entries with missing data
+
+            bssid = item["bssid"]
+            latitude = item["latitude"]
+            longitude = item["longitude"]
+            module = item["module"]
+            location_url = f"https://www.google.com/maps/search/?q={latitude},{longitude}"
+            ssid = item.get("ssid", None)  # Get ssid if available
+            if ssid:
+                embed.add_field(name=f"{module} - {bssid} - {ssid}", value=f"[{latitude}, {longitude}]({location_url})", inline=False)
+                continue
+            embed.add_field(name=f"{module} - {bssid}", value=f"[{latitude}, {longitude}]({location_url})", inline=False)
+        await msg.edit(embed=embed)
+         
 async def setup(bot) -> None:
     await bot.add_cog(Utility(bot))
