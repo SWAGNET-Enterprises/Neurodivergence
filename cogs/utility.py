@@ -182,7 +182,7 @@ class Utility(commands.Cog, name="utility"):
         name="geowifi",
         description="Retrieve geolocation info for a BSSID or SSID",
     )
-    async def geowifi(self, ctx, bssid="14:84:73:0A:76:E9", ssid=""):
+    async def geowifi(self, ctx, bssid="", ssid=""):
         embed = discord.Embed(title=f"Wifi Geolocation - {bssid} {ssid}", description="Please wait...")
         msg = await ctx.reply(embed=embed)
 
