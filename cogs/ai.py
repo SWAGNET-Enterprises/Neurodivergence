@@ -9,7 +9,6 @@ import base64
 from PIL import Image
 import os
 import asyncio
-from datetime import datetime, time, timedelta
 
 auto1111_hosts = json.loads(os.environ['AUTO1111_HOSTS'])
 lms_hosts = json.loads(os.environ['LMS_HOSTS'])
@@ -17,11 +16,6 @@ lms_hosts = json.loads(os.environ['LMS_HOSTS'])
 class AI(commands.Cog, name="ai"):
     def __init__(self, bot) -> None:
         self.bot = bot
-        self.bot.loop.create_task(self.schedule_good_morning_messages())
-        self.bot.add_listener(self.on_ready)
-
-    async def on_ready(self):
-        await self.send_good_morning_messages()
 
     async def get_channel_history(self, channel, limit=100):
         messages = []
@@ -65,63 +59,13 @@ class AI(commands.Cog, name="ai"):
         # Check for keywords
         if "neuro" in message.content.lower() or "neurodivergence" in message.content.lower():
             await self.respond_to_message(message, history)
-        elif random.random() < 0.05:  # 5% chance
+        elif random.random() < 0.10:  # 10% chance
             await self.respond_to_message(message, history)
 
     async def respond_to_message(self, message, history):
         prompt = f"you are neuro (short for neurodivergence), a friendly and fun discord bot that talks like a regular member of a discord server. you are part of this ongoing conversation and should respond naturally, casually, and to the point, as if you're just one of the group./n/nhere's the recent chat history for context:/n```{history}```/n/nthe user said: ```{message.author.name}: {message.content}```/n/nrespond like a normal discord user would: casually, using lowercase, and straight to the point. don’t include your name or username in your response, and avoid making it sound like a formal answer. just chat naturally, like you're hanging out with friends."
         response = await self.gemini_request(prompt)
         await message.reply(response)
-
-    async def schedule_good_morning_messages(self):
-        await self.bot.wait_until_ready()
-        while not self.bot.is_closed():
-            now = datetime.now()
-            target_time = self.get_random_time()
-            
-            # Calculate time until next run
-            if now.time() > target_time:
-                # If it's past the target time, schedule for tomorrow
-                next_run = datetime.combine(now.date() + timedelta(days=1), target_time)
-            else:
-                next_run = datetime.combine(now.date(), target_time)
-            
-            await asyncio.sleep((next_run - now).total_seconds())
-            
-            await self.send_good_morning_messages()
-
-    def get_random_time(self):
-        # Generate a random time between 8:00 AM and 12:00 PM
-        random_hour = random.randint(8, 11)
-        random_minute = random.randint(0, 59)
-        return time(hour=random_hour, minute=random_minute)
-
-    async def send_good_morning_messages(self):
-        for guild in self.bot.guilds:
-            most_active_channel = await self.get_most_active_channel(guild)
-            if most_active_channel:
-                history = await self.get_channel_history(most_active_channel)
-                prompt = f"channel history:/n{history}/n/nbased on the recent topics in this channel, generate a casual and friendly good morning message to start a conversation. keep it informal, engaging, and relatable, like how a regular member of the server would chat. use lowercase and keep it simple."
-                message = await self.gemini_request(prompt)
-                await most_active_channel.send(message)
-
-    async def get_most_active_channel(self, guild):
-        channels = guild.text_channels
-        most_active = None
-        max_messages = 0
-
-        for channel in channels:
-            try:
-                message_count = 0
-                async for _ in channel.history(limit=100):
-                    message_count += 1
-                if message_count > max_messages:
-                    max_messages = message_count
-                    most_active = channel
-            except discord.errors.Forbidden:
-                continue  # Skip channels the bot doesn't have access to
-
-        return most_active
 
     @commands.hybrid_command(
         name="wizard",
