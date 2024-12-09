@@ -59,7 +59,7 @@ class AI(commands.Cog, name="ai"):
         # Check for keywords
         if "neuro" in message.content.lower() or "neurodivergence" in message.content.lower():
             await self.respond_to_message(message, history)
-        elif random.random() < 0.10:  # 10% chance
+        elif random.random() < 0.05:  # 5% chance
             await self.respond_to_message(message, history)
 
     async def respond_to_message(self, message, history):
