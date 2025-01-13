@@ -6,7 +6,7 @@ from bs4 import BeautifulSoup
 import re
 import os
 
-headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:109.0) Gecko/20100101 Firefox/114.0'}
+headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:133.0) Gecko/20100101 Firefox/133.0'}
 
 class Utility(commands.Cog, name="utility"):
     def __init__(self, bot) -> None:
@@ -59,7 +59,7 @@ class Utility(commands.Cog, name="utility"):
 
         async with aiohttp.ClientSession() as session:
             url = f"https://personlookup.com.au/search?page=1&q={query}&suburb={suburb}&state={state}"
-            async with session.get(url, headers=headers) as response:
+            async with session.get(url, headers=headers, proxy=os.getenv("HTTP_PROXY")) as response:
                 if response.status != 200:
                     embed = discord.Embed(title=f"Person Lookup - {query.capitalize()}", description="Error fetching results.")
                     await msg.edit(embed=embed)
@@ -91,8 +91,8 @@ class Utility(commands.Cog, name="utility"):
         msg = await ctx.reply(embed=embed)
 
         async with aiohttp.ClientSession() as session:
-            url = f"https://fuelprice.io/{state}/{town}/"
-            async with session.get(url, headers=headers) as response:
+            url = f"https://fuelprice.io/{state}/{town}"
+            async with session.get(url, headers=headers, proxy=os.getenv("HTTP_PROXY")) as response:
                 if response.status != 200:
                     embed = discord.Embed(title=f"Fuel Prices - {town.capitalize()}", description="Error fetching fuel prices.")
                     await msg.edit(embed=embed)
