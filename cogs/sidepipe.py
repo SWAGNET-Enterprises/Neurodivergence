@@ -32,7 +32,7 @@ class Sidepipe(commands.Cog, name="sidepipe"):
                 headers = {'Authorization': f'Bearer {os.getenv("HASS_TOKEN")}'}
                 async with session.get(url=f"{url}/api/camera_proxy/camera.{camera}", headers=headers) as response:
                     if response.status != 200:
-                        embed = discord.Embed(title=f"CCTV Selfie - Camera {camera}", description=f"Error fetching image.")
+                        embed = discord.Embed(title=f"CCTV Selfie - Camera {camera}", description=f"Error fetching image. {response.status}")
                         await msg.edit(embed=embed)
                         return
                     image_data = io.BytesIO(await response.read())

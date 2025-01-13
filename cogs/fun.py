@@ -44,7 +44,7 @@ class Fun(commands.Cog, name="fun"):
 
             async with session.get(url, headers=headers) as response:
                 if response.status != 200:
-                    embed = discord.Embed(title="Wanted Person - Crime Stoppers SA", description="Error retrieving image.")
+                    embed = discord.Embed(title="Wanted Person - Crime Stoppers SA", description="Error retrieving image. {response.status}")
                     await msg.edit(embed=embed)
                     return
                 soup = BeautifulSoup(await response.text(), "html.parser")
@@ -78,7 +78,7 @@ class Fun(commands.Cog, name="fun"):
 
             async with session.get(url, headers=headers) as response:
                 if response.status != 200:
-                    embed = discord.Embed(title="Random CCTV", description="Error retrieving stream.")
+                    embed = discord.Embed(title="Random CCTV", description="Error retrieving stream. {response.status}")
                     await msg.edit(embed=embed)
                     return
                 soup = BeautifulSoup(await response.text(), "html.parser")

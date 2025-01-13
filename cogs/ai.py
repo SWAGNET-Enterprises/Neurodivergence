@@ -29,7 +29,7 @@ class AI(commands.Cog, name="ai"):
             data = {"contents": [{"parts": [{"text": prompt}]}]}
             async with session.post(url, json=data) as response:
                 if response.status != 200:
-                    return "There was an error communicating with the Gemini API."
+                    return "There was an error communicating with the Gemini API. {response.status}"
                 gemini_json = await response.json()
                 return gemini_json["candidates"][0]["content"]["parts"][0]["text"]
 
