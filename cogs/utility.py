@@ -24,7 +24,7 @@ class Utility(commands.Cog, name="utility"):
             url = f"http://www.bom.gov.au/{state}/forecasts/{town}.shtml"
             async with session.get(url, headers=headers) as response:
                 if response.status != 200:
-                    embed = discord.Embed(title="Weather", description="Failed to retrieve weather. {response.status}")
+                    embed = discord.Embed(title="Weather", description=f"Failed to retrieve weather. {response.status}")
                     await msg.edit(embed=embed)
                     return
                 soup = BeautifulSoup(await response.text(), "html.parser")
@@ -61,7 +61,7 @@ class Utility(commands.Cog, name="utility"):
             url = f"https://personlookup.com.au/search?page=1&q={query}&suburb={suburb}&state={state}"
             async with session.get(url, headers=headers, proxy=os.getenv("HTTP_PROXY")) as response:
                 if response.status != 200:
-                    embed = discord.Embed(title=f"Person Lookup - {query.capitalize()}", description="Error fetching results. {response.status}")
+                    embed = discord.Embed(title=f"Person Lookup - {query.capitalize()}", description=f"Error fetching results. {response.status}")
                     await msg.edit(embed=embed)
                     return
                 soup = BeautifulSoup(await response.text(), "html.parser")
@@ -94,7 +94,7 @@ class Utility(commands.Cog, name="utility"):
             url = f"https://fuelprice.io/{state}/{town}"
             async with session.get(url, headers=headers, proxy=os.getenv("HTTP_PROXY")) as response:
                 if response.status != 200:
-                    embed = discord.Embed(title=f"Fuel Prices - {town.capitalize()}", description="Error fetching fuel prices. {response.status}")
+                    embed = discord.Embed(title=f"Fuel Prices - {town.capitalize()}", description=f"Error fetching fuel prices. {response.status}")
                     await msg.edit(embed=embed)
                     return
             soup = BeautifulSoup(await response.text(), "html.parser")
@@ -133,7 +133,7 @@ class Utility(commands.Cog, name="utility"):
                     return
                 elif response.status != 200:
                     # Handle other potential errors
-                    embed = discord.Embed(title=f"Open ports - {ip}", description="An error occurred while fetching data. {response.status}")
+                    embed = discord.Embed(title=f"Open ports - {ip}", description=f"An error occurred while fetching data. {response.status}")
                     await msg.edit(embed=embed)
                     return
                 shodan_json = await response.json()
@@ -190,7 +190,7 @@ class Utility(commands.Cog, name="utility"):
             data = {"bssid": bssid, "ssid": ssid}
             async with session.post(url, json=data) as response:
                 if response.status != 200:
-                    embed = discord.Embed(title=f"Wifi Geolocation - {bssid} {ssid}", description="An error occurred while fetching data. {response.status}")
+                    embed = discord.Embed(title=f"Wifi Geolocation - {bssid} {ssid}", description=f"An error occurred while fetching data. {response.status}")
                     await msg.edit(embed=embed)
                     return
                 geowifi_json = await response.json()
