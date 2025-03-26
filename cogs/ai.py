@@ -25,7 +25,7 @@ class AI(commands.Cog, name="ai"):
 
     async def gemini_request(self, prompt):
         async with aiohttp.ClientSession() as session:
-            url = f'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key={os.getenv("GEMINI_KEY")}'
+            url = f'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={os.getenv("GEMINI_KEY")}'
             data = {"contents": [{"parts": [{"text": prompt}]}]}
             async with session.post(url, json=data) as response:
                 if response.status != 200:
